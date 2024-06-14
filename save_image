@@ -1,0 +1,44 @@
+#!/bin/sh
+
+CAPTURE_TOOL="curl http://localhost/image.jpg?width=1280&height=720"
+
+# Function to capture, save, and generate checksum
+capture_save_checksum() {
+    SDCARD_PATH=$1
+    FOLDER_PATH="$SDCARD_PATH/$(date +"%F")/image/$(date +"%H")"
+    echo "Folder path: $FOLDER_PATH"
+
+    # create folder if it doesn't exist
+    if [ ! -d "$FOLDER_PATH" ]; then
+        mkdir -p $FOLDER_PATH
+        echo "Folder created: $FOLDER_PATH"
+    else
+        echo "Folder already exists: $FOLDER_PATH"
+    fi
+
+    FILENAME="$(date +"%M-%S")"
+    IMG_FILE="$FOLDER_PATH/$FILENAME.jpg"
+    echo "Image file: $IMG_FILE"
+
+    # Capture image and save it
+    echo "$CAPTURE_TOOL -o $IMG_FILE"
+    $CAPTURE_TOOL -o $IMG_FILE
+    echo "Picture saved: $IMG_FILE"
+
+    # Generate checksum and save it to a file
+    # CHECKSUM_FILE="$FOLDER_PATH/$FILENAME.sha256"
+    # sha256sum $IMG_FILE > $CHECKSUM_FILE
+    # echo "Checksum saved: $CHECKSUM_FILE"
+}
+
+if [ ! -e /dev/mmcblk0 ]; then
+    echo "SD card not found"
+    exit 1
+else
+    card_device="/mnt/mmcblk0"
+    card_partition="${card_device}p1"
+    echo "SD card found"
+    capture_save_checksum $card_partition
+fi
+
+# Infinite loop to capture, save, and generate checksum every 2 seconds

@@ -1,0 +1,49 @@
+#!/bin/sh
+
+# TODO : except login to shell
+
+# Define serial ports
+UART_IN="/dev/ttyS0"
+UART_OUT="/dev/ttyS1"
+
+# Set the baud rate and other parameters for both UARTs
+# Adjust the baud rate and parameters as needed (e.g., 9600 baud, 8N1 configuration)
+stty -F $UART_IN 115200 cs8 -cstopb -parenb
+stty -F $UART_OUT 9600 cs8 -cstopb -parenb
+
+# Check if both UARTs are available
+if [ ! -c $UART_IN ]; then
+    echo "Error: $UART_IN is not available."
+    exit 1
+fi
+
+if [ ! -c $UART_OUT ]; then
+    echo "Error: $UART_OUT is not available."
+    exit 1
+fi
+
+# Read from UART_IN and write to UART_OUT
+# if containt "send" then send data after "send" to UART_OUT
+
+command="send"
+
+cat $UART_IN | while read line; do
+    echo "Received: $line"
+    # if data contain $command then send data after "send" to UART_OUT
+    if [[ "$line" == *"$command"* ]]; then
+        # get data after "send"
+        data=$(echo $line | sed "s/.*$command//")
+        curl "localhost:9000/api/osd/0?text=$data"
+        echo "Sending: $data" >$UART_OUT
+    fi
+
+    # flush tx data
+    echo "" >$UART_OUT
+
+    # if [[ "$line" == *"send"* ]]; then
+    #     curl "localhost:9000/api/osd/0?text=$line"
+    #     echo "Sending: $line" >$UART_OUT
+    # fi
+done
+
+# cat $UART_IN | tee $UART_OUT

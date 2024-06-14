@@ -4,6 +4,7 @@
 #include "net.h"
 #include "region.h"
 #include "text.h"
+#include <time.h>
 
 void *io_map;
 struct osd *osds;
@@ -225,7 +226,14 @@ void route()
                 if (equals(key, "font"))
                     strcpy(osds[id].font, !empty(value) ? value : DEF_FONT);
                 else if (equals(key, "text"))
-                    strcpy(osds[id].text, value);
+                    {
+                        char s[256];
+                        time_t t = time(NULL);
+                        struct tm *tm = localtime(&t);
+                        strftime(s, 64, timefmt, tm);
+                        strcat(s, value);
+                        strcpy(osds[id].text, s);
+                    }
                 else if (equals(key, "size")) {
                     double result = strtod(value, &remain);
                     if (remain == value) continue;

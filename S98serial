@@ -1,0 +1,46 @@
+#!/bin/sh
+
+DAEMON="serial"
+PIDFILE="/var/run/$DAEMON.pid"
+SERIAL_ARGS=""
+
+start() {
+    sleep 3
+    printf "Starting $DAEMON: "
+    start-stop-daemon -b -S -m -q -p "$PIDFILE" -x "/usr/bin/$DAEMON"
+    status=$?
+
+    if [ "$status" -eq 0 ]; then
+        echo "OK"
+    else
+        echo "FAIL"
+    fi
+}
+
+stop() {
+    printf "Stopping $DAEMON: "
+    start-stop-daemon -K -q -p "$PIDFILE"
+    if [ $? = 0 ]; then
+        rm -f "$PIDFILE"
+        echo "OK"
+    else
+        echo "FAIL"
+    fi
+}
+
+case "$1" in
+start | stop)
+    "$1"
+    ;;
+
+restart)
+    stop
+    sleep 3
+    start
+    ;;
+
+*)
+    echo "Usage: $0 {start|stop|restart}"
+    exit 1
+    ;;
+esac

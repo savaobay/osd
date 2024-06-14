@@ -17,7 +17,7 @@ int create_region(int *handle, int x, int y, int width, int height)
     stChn.eModId = E_MI_RGN_MODID_VPE;
     stChn.s32DevId = 0;
     stChn.s32ChnId = 0;
-
+    stChn.s32OutputPortId = 0;
     stRegion.eType = E_MI_RGN_TYPE_OSD;
     stRegion.stOsdInitParam.stSize.u32Height = height;
     stRegion.stOsdInitParam.stSize.u32Width = width;
@@ -178,6 +178,8 @@ int prepare_bitmap(const char *filename, BITMAP *bitmap, int bFil, unsigned int 
         Surface.enColorFmt = OSD_COLOR_FMT_RGB4444;
         break;
     case PIXEL_FORMAT_1555:
+        Surface.enColorFmt = OSD_COLOR_FMT_RGB1555;
+        break;
     case PIXEL_FORMAT_2BPP:
         Surface.enColorFmt = OSD_COLOR_FMT_RGB1555;
         break;
