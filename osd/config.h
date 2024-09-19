@@ -1,5 +1,6 @@
 // Good for ARGB8888 360x360 and ARGB1555 512x512
 #define BUF_SIZE (512*1024)
+#define DATA_SIZE (256)
 // OpenIPC font must be replaced for Unicode support
 #define DEF_FONT "UbuntuMono-Regular"
 #define DEF_POSX 16

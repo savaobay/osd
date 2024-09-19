@@ -13,7 +13,7 @@ char timefmt[32] = DEF_TIMEFMT;
 static void fill(char* str)
 {
     unsigned int rxb_l, txb_l, cpu_l[6];
-    char out[80] = "";
+    char out[DATA_SIZE] = "";
     char param = 0;
     int ipos = 0, opos = 0;
 
@@ -31,14 +31,14 @@ static void fill(char* str)
             if (getifaddrs(&ifaddr) == -1) continue;
 
             for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next)
-            { 
+            {
                 if (equals(ifa->ifa_name, "lo")) continue;
                 if (!ifa->ifa_addr || ifa->ifa_addr->sa_family != AF_PACKET) continue;
                 if (!ifa->ifa_data) continue;
 
                 struct rtnl_link_stats *stats = ifa->ifa_data;
                 char b[32];
-                sprintf(b, "R:%dKbps S:%dKbps", 
+                sprintf(b, "R:%dKbps S:%dKbps",
                     (stats->rx_bytes - rxb_l) / 1024, (stats->tx_bytes - txb_l) / 1024);
                 strcat(out, b);
                 opos += strlen(b);
@@ -46,7 +46,7 @@ static void fill(char* str)
                 txb_l = stats->tx_bytes;
                 break;
             }
-            
+
             freeifaddrs(ifaddr);
         }
         else if (str[ipos + 1] == 'C')
@@ -110,9 +110,9 @@ static void fill(char* str)
             strcat(out, "$");
             opos++;
         }
-        ipos++; 
+        ipos++;
     }
-    strncpy(str, out, 80);
+    strncpy(str, out, DATA_SIZE);
 }
 
 void overlays()
@@ -123,7 +123,7 @@ void overlays()
         {
             if (!empty(osds[id].text))
             {
-                char out[80];
+                char out[DATA_SIZE];
                 strcpy(out, osds[id].text);
                 if (strstr(out, "$"))
                 {
@@ -137,7 +137,7 @@ void overlays()
                     if (!access(font, F_OK)) {
                         RECT rect = measure_text(font, osds[id].size, out);
                         create_region(
-                            &osds[id].hand, 
+                            &osds[id].hand,
                             osds[id].posx, osds[id].posy,
                             rect.width, rect.height);
                         BITMAP bitmap = raster_text(font, osds[id].size, out);
@@ -185,7 +185,7 @@ void route()
                 payloadb = strstr(payloadb, "\r\n\r\n") + 4;
 
                 void *payloade = memmem(
-                    payloadb, payload_size - (payloadb - payload), 
+                    payloadb, payload_size - (payloadb - payload),
                     bound, strlen(bound));
                 // TODO: Manage the case where payloade returns 0
                 payloade -= 4;
@@ -227,10 +227,10 @@ void route()
                     strcpy(osds[id].font, !empty(value) ? value : DEF_FONT);
                 else if (equals(key, "text"))
                     {
-                        char s[256];
+                        char s[DATA_SIZE];
                         time_t t = time(NULL);
                         struct tm *tm = localtime(&t);
-                        strftime(s, 64, timefmt, tm);
+                        strftime(s, sizeof(s), timefmt, tm);
                         strcat(s, value);
                         strcpy(osds[id].text, s);
                     }
@@ -258,7 +258,7 @@ void route()
             "Connection: close\r\n" \
             "\r\n" \
         );
-        printf("{\"id\":%d,\"pos\":[%d,%d],\"font\":\"%s\",\"size\":%.1f,\"text\":\"%s\"}", 
+        printf("{\"id\":%d,\"pos\":[%d,%d],\"font\":\"%s\",\"size\":%.1f,\"text\":\"%s\"}",
             id, osds[id].posx, osds[id].posy, osds[id].font, osds[id].size, osds[id].text);
         return;
     }
